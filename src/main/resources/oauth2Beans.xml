@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:security="http://www.springframework.org/schema/security"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+          http://www.springframework.org/schema/security
+          http://www.springframework.org/schema/security/spring-security-3.0.3.xsd">
+          
+          <security:authentication-manager id="resourceOwnerAuthenticationManager">
+          	<security:authentication-provider>
+          		<security:user-service id="resourceOwnerUserServuce">
+          			<security:user name="${secure::client1.user.name}" password="${secure::client1.user.password}" 
+          			authorities="${secure::client1.user.authorities}"/>
+          			<security:user name="${secure::client2.user.name}" password="${secure::client2.user.password}" 
+          			authorities="${secure::client2.user.authorities}"/>
+          		</security:user-service>
+          	</security:authentication-provider>
+          </security:authentication-manager>
+          
+          <security:authentication-manager id="clientAuthenticationManager">
+          	<security:authentication-provider>
+          		<security:user-service id="clientUserServuce">
+          			<security:user name="${secure::client1.client.name}" password="${secure::client1.client.password}" 
+          			authorities="${secure::client1.client.authorities}"/>
+          			<security:user name="${secure::client2.client.name}" password="${secure::client2.client.password}" 
+          			authorities="${secure::client2.client.authorities}"/>
+          		</security:user-service>
+          	</security:authentication-provider>
+          </security:authentication-manager>
+</beans>

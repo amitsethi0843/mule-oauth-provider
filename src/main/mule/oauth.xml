@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:oauth2-provider="http://www.mulesoft.org/schema/mule/oauth2-provider" xmlns:spring="http://www.mulesoft.org/schema/mule/spring"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/spring http://www.mulesoft.org/schema/mule/spring/current/mule-spring.xsd
+http://www.mulesoft.org/schema/mule/oauth2-provider http://www.mulesoft.org/schema/mule/oauth2-provider/current/mule-oauth2-provider.xsd">
+	<os:object-store name="Client_Object_Store" doc:name="Object store" doc:id="3355da64-b520-457b-9a83-ee9ad8b73187" />
+	<os:object-store name="Token_Object_Store" doc:name="Object store" doc:id="d7e40310-afc7-4efd-84e0-9ead67938f14" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="92a1c85a-ccf0-478a-84c3-3b74c7efce9d" file="${env}.oauth.properties" key="${env.key}" />
+	<http:listener-config name="Oauth2_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="694ee947-65a1-4181-ab87-f93f00d4d34f" basePath="${secure::oauth2.provider.http.base.path}" >
+		<http:listener-connection host="${secure::oauth2.provider.http.host}" port="${secure::oauth2.provider.http.listener.port}" />
+	</http:listener-config>
+	<spring:security-manager doc:name="Spring Security manager" doc:id="8397fd8b-47b5-4eab-be11-b8e58e819bc2" >
+		<spring:delegate-security-provider name="resourceOwnerSecurityProvider" delegate-ref="resourceOwnerAuthenticationManager" />
+		<spring:delegate-security-provider name="clientSecurityProvider" delegate-ref="clientAuthenticationManager" />
+	</spring:security-manager>
+	<oauth2-provider:config name="OAuth2_Provider_Config" doc:name="OAuth2 Provider Config" doc:id="17d8c746-d954-446a-b953-4583b62d3fd1" listenerConfig="Oauth2_HTTP_Listener_config" clientStore="Client_Object_Store" resourceOwnerSecurityProvider="resourceOwnerSecurityProvider" clientSecurityProvider="clientSecurityProvider" supportedGrantTypes="${secure::oauth2.provider.supported.grantTypes}" scopes="${secure::oauth2.provider.scopes.all}" >
+		<oauth2-provider:token-config path="${secure::oauth2.provider.token.endpoint}" tokenStore="Token_Object_Store" tokenTtl="${secure::oauth2.provider.token.validity.seconds}" />
+		<oauth2-provider:authorization-config authorizationCodeStore="Token_Object_Store"/>
+		<oauth2-provider:clients >
+			<oauth2-provider:client clientId="${secure::client1.client.name}" secret="${secure::client1.client.password}" >
+				<oauth2-provider:client-redirect-uris >
+					<oauth2-provider:client-redirect-uri value="${secure::oauth2.provider.redirect.uri}" />
+				</oauth2-provider:client-redirect-uris>
+				<oauth2-provider:client-authorized-grant-types >
+					<oauth2-provider:client-authorized-grant-type value="PASSWORD" />
+				</oauth2-provider:client-authorized-grant-types>
+				<oauth2-provider:client-scopes >
+					<oauth2-provider:client-scope value="${secure::client1.oauth.api.scope}" />
+				</oauth2-provider:client-scopes>
+			</oauth2-provider:client>
+			
+			<oauth2-provider:client clientId="${secure::client2.client.name}" secret="${secure::client2.client.password}" >
+				<oauth2-provider:client-redirect-uris >
+					<oauth2-provider:client-redirect-uri value="${secure::oauth2.provider.redirect.uri}" />
+				</oauth2-provider:client-redirect-uris>
+				<oauth2-provider:client-authorized-grant-types >
+					<oauth2-provider:client-authorized-grant-type value="PASSWORD" />
+				</oauth2-provider:client-authorized-grant-types>
+				<oauth2-provider:client-scopes >
+					<oauth2-provider:client-scope value="${secure::client2.oauth.api.scope}" />
+				</oauth2-provider:client-scopes>
+			</oauth2-provider:client>
+		</oauth2-provider:clients>
+	</oauth2-provider:config>
+	<http:request-config name="Oauth2_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="1fffed36-3e4c-4217-bf1b-1dd3815b29a9" >
+		<http:request-connection host="${secure::oauth2.provider.http.host}" port="${secure::oauth2.provider.http.listener.port}" />
+	</http:request-config>
+</mule>

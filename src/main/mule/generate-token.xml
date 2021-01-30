@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4150dee3-8b6a-4261-83e0-dd0cdd41094f" basePath="/api" >
+		<http:listener-connection host="0.0.0.0" port="8084" />
+	</http:listener-config>
+	<flow name="generate-token-proxy" doc:id="09fe9c76-ff0c-4db7-901e-e364804301c9" >
+		<http:listener doc:name="Listener" doc:id="42622864-fd3f-4f73-9a6b-378008ba921a" config-ref="HTTP_Listener_config" path="${secure::oauth2.proxy.token.endpoint}">
+			<http:response statusCode="#[vars.HttpStatus default 200]" />
+			<http:error-response statusCode="#[vars.HttpStatus default 500]" />
+		</http:listener>
+		<logger level="DEBUG" doc:name="Logger" doc:id="ebbc30a1-0b97-4ab6-80e9-8a90224dac39" message="Generate Token Request: #[output application/json --- payload], Attributes: #[attributes]"/>
+		<http:request method="POST" doc:name="Request" doc:id="6fe944ee-5d5b-4fd3-ae45-cb1ec0ba455f" config-ref="Oauth2_HTTP_Request_configuration" path="${secure::oauth2.provider.token.endpoint}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Cache-Control" : "no-cache",
+	"Authorization" : attributes.headers['authorization'],
+	"Content-Type" : "application/x-www-form-urlencoded"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"username" : attributes.queryParams['username'],
+	"scope" : attributes.queryParams['scope'],
+	"grant_type" : attributes.queryParams['grant_type'],
+	"password" : attributes.queryParams['password']
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[attributes.statusCode]" doc:name="Set Variable" doc:id="1930b26b-c79d-4ab6-9213-18eeabfc284a" variableName="HttpStatus"/>
+		<logger level="INFO" doc:name="Logger" doc:id="4465352a-c2fb-43dd-977a-4f87e01bbeb3" message="Proxy Generate Token Response: #[payload], HttpStatus: #[vars.HttpStatus]"/>
+	</flow>
+</mule>
